@@ -11,8 +11,8 @@ services:
     restart: always
     environment:
       - POSTGRES_DB=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=${env.DATABASE_USERNAME}
+      - POSTGRES_PASSWORD=${env.DATABASE_PASSWORD}
   app:
     image: app_image
     container_name: app_container
