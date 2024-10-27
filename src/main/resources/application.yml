@@ -1,0 +1,26 @@
+spring:
+  jpa:
+    show-sql: true
+    database: postgresql
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/postgres
+    password: ${env.DATABASE_PASSWORD}
+    username: ${env.DATABASE_USERNAME}
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  security:
+    oauth2:
+      client:
+        registration:
+          google.client-id: ${env.GOOGLE_CLIENT_ID}
+          google.client-secret: ${env.GOOGLE_CLIENT_SECRET}
+          google.redirect-uri: ${env.BACK_END_URL}/oauth2/callback/google
+logging:
+  level:
+    sql: trace
+    org.springframework.transaction: trace
+    org.springframework.transaction.support: trace
+    org.springframework.security: trace

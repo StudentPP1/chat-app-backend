@@ -1,0 +1,40 @@
+version: "3.8"
+services:
+  redis:
+    image: redis
+    restart: always
+    command: redis-server
+    ports:
+      - "6379:6379"
+  db:
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+  app:
+    image: app_image
+    container_name: app_container
+    restart: always
+    build: ./
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis
+      - db
+    environment:
+      - spring.datasource.driver-class-name=org.postgresql.Driver
+      - spring.jpa.show-sql=true
+      - spring.datasource.url=jdbc:postgresql://db:5432/postgres
+      - spring.datasource.username=${env.DATABASE_USERNAME}
+      - spring.datasource.password=${env.DATABASE_PASSWORD}
+      - spring.data.redis.host=redis
+      - spring.data.redis.port=6379
+      - spring.security.oauth2.client.registration.google.client-id=${env.GOOGLE_CLIENT_ID}
+      - spring.security.oauth2.client.registration.google.client-secret=${env.GOOGLE_CLIENT_SECRET}
+      - spring.security.oauth2.client.registration.google.redirect-uri=${env.BACK_END_URL}/oauth2/callback/google
+      - logging.level.sql=trace
+      - logging.level.org.springframework.transaction=trace
+      - logging.level.org.springframework.transaction.support=trace
+      - logging.level.org.springframework.security=trace
