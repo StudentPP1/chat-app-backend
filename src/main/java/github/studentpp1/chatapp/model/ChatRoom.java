@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -20,7 +21,7 @@ public class ChatRoom {
     private String chatId;
 
     @ManyToMany(mappedBy = "chats", fetch = FetchType.EAGER)
-    private List<User> users;
+    private List<User> users = new ArrayList<>();
     @OneToMany(mappedBy = "chatRoom")
-    private List<Message> messages;
+    private List<Message> messages = new ArrayList<>();
 }
