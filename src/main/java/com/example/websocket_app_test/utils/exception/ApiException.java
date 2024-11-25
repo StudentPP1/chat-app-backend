@@ -1,11 +1,13 @@
 package com.example.websocket_app_test.utils.exception;
 
 import lombok.Builder;
+import lombok.Getter;
 
 
 @Builder
 public class ApiException extends RuntimeException {
     private String message;
+    @Getter
     private int status;
 
     public ApiException(String message, int status) {
@@ -16,17 +18,5 @@ public class ApiException extends RuntimeException {
     @Override
     public String getMessage() {
         return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public int getStatus() {
-        return status;
-    }
-
-    public void setStatus(int status) {
-        this.status = status;
     }
 }

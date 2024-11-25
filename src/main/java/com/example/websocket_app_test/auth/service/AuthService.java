@@ -33,7 +33,6 @@ import java.util.Optional;
 public class AuthService {
     private final ChatUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final ApplicationProperties applicationProperties;
     private final AuthenticationManager authenticationManager;
     private final SecurityContextRepository contextRepository = new HttpSessionSecurityContextRepository();
 
@@ -51,13 +50,19 @@ public class AuthService {
                       HttpServletRequest request,
                       HttpServletResponse response
     ) throws IOException {
+        Optional<ChatUser> userOptional = userRepository.findByUsername(userLoginRequest.getUsername());
         // check is user in context & get session id to cookie
-        createSession(
-                request,
-                response,
-                userLoginRequest.getUsername(),
-                userLoginRequest.getPassword()
-        );
+        if (userOptional.isPresent()) {
+            createSession(
+                    request,
+                    response,
+                    userLoginRequest.getUsername(),
+                    userLoginRequest.getPassword()
+            );
+        }
+        else {
+            throw new ApiException("user not found", 422);
+        }
     }
 
     public void register(
@@ -65,25 +70,20 @@ public class AuthService {
             HttpServletRequest request,
             HttpServletResponse response
     ) throws Exception {
-        Optional<ChatUser> userOptional = userRepository.findByUsername(userRegisterRequest.getUsername());
-        if (userOptional.isEmpty()) {
-            ChatUser user = new ChatUser();
-            user.setName(userRegisterRequest.getName());
-            user.setUsername(userRegisterRequest.getUsername());
-            user.setPassword(passwordEncoder.encode(userRegisterRequest.getPassword()));
-            user = userRepository.save(user);
-            // save user to context
-            authenticateUser(user, response);
-            // check is user in context & get session id to cookie
-            createSession(
-                    request,
-                    response,
-                    userRegisterRequest.getUsername(),
-                    userRegisterRequest.getPassword()
-            );
-        } else {
-            throw new ApiException("user is already exist", 400);
-        }
+        ChatUser user = new ChatUser();
+        user.setName(userRegisterRequest.getName());
+        user.setUsername(userRegisterRequest.getUsername());
+        user.setPassword(passwordEncoder.encode(userRegisterRequest.getPassword()));
+        user = userRepository.save(user);
+        // save user to context
+        authenticateUser(user, response);
+        // check is user in context & get session id to cookie
+        createSession(
+                request,
+                response,
+                userRegisterRequest.getUsername(),
+                userRegisterRequest.getPassword()
+        );
     }
 
     private void authenticateUser(ChatUser user, HttpServletResponse response) throws IOException {

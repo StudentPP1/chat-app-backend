@@ -6,6 +6,7 @@ import com.example.websocket_app_test.auth.service.AuthService;
 import com.example.websocket_app_test.response.UserResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public void login(
-            @RequestBody UserLoginRequest userLoginRequest,
+            @Valid @RequestBody UserLoginRequest userLoginRequest,
             HttpServletRequest request,
             HttpServletResponse response
     ) throws IOException {
@@ -37,7 +38,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public void register(
-            @RequestBody UserRegisterRequest userRegisterRequest,
+            @Valid @RequestBody UserRegisterRequest userRegisterRequest,
             HttpServletRequest request,
             HttpServletResponse response
     ) throws Exception {
