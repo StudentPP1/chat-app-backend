@@ -12,8 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
-
 @RestController
 @Slf4j
 @RequiredArgsConstructor
@@ -26,7 +24,7 @@ public class AuthController {
             @Valid @RequestBody UserLoginRequest userLoginRequest,
             HttpServletRequest request,
             HttpServletResponse response
-    ) throws IOException {
+    ) {
         authService.login(userLoginRequest, request, response);
     }
 
@@ -41,7 +39,7 @@ public class AuthController {
             @Valid @RequestBody UserRegisterRequest userRegisterRequest,
             HttpServletRequest request,
             HttpServletResponse response
-    ) throws Exception {
+    ) {
         authService.register(userRegisterRequest, request, response);
     }
 }

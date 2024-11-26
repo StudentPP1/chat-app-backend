@@ -6,7 +6,6 @@ import com.example.websocket_app_test.repository.ChatUserRepository;
 import com.example.websocket_app_test.request.UserLoginRequest;
 import com.example.websocket_app_test.request.UserRegisterRequest;
 import com.example.websocket_app_test.response.UserResponse;
-import com.example.websocket_app_test.utils.application.ApplicationProperties;
 import com.example.websocket_app_test.utils.exception.ApiException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,7 +23,6 @@ import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
 import java.util.Optional;
 
 @Slf4j
@@ -49,10 +47,18 @@ public class AuthService {
     public void login(UserLoginRequest userLoginRequest,
                       HttpServletRequest request,
                       HttpServletResponse response
-    ) throws IOException {
-        Optional<ChatUser> userOptional = userRepository.findByUsername(userLoginRequest.getUsername());
+    ) {
+        Optional<ChatUser> userOptional = userRepository.findByUsername(
+                userLoginRequest.getUsername()
+        );
+        boolean passwordMatch = passwordEncoder.matches(
+                userLoginRequest.getPassword(),
+                userOptional.orElseThrow(
+                        () -> new ApiException("user not found", 422)
+                ).getPassword()
+        );
         // check is user in context & get session id to cookie
-        if (userOptional.isPresent()) {
+        if (passwordMatch) {
             createSession(
                     request,
                     response,
@@ -69,14 +75,14 @@ public class AuthService {
             UserRegisterRequest userRegisterRequest,
             HttpServletRequest request,
             HttpServletResponse response
-    ) throws Exception {
+    ) {
         ChatUser user = new ChatUser();
         user.setName(userRegisterRequest.getName());
         user.setUsername(userRegisterRequest.getUsername());
         user.setPassword(passwordEncoder.encode(userRegisterRequest.getPassword()));
         user = userRepository.save(user);
         // save user to context
-        authenticateUser(user, response);
+        authenticateUser(user);
         // check is user in context & get session id to cookie
         createSession(
                 request,
@@ -86,7 +92,7 @@ public class AuthService {
         );
     }
 
-    private void authenticateUser(ChatUser user, HttpServletResponse response) throws IOException {
+    private void authenticateUser(ChatUser user) {
         log.info("start authentication");
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                 user,
@@ -100,14 +106,12 @@ public class AuthService {
             HttpServletRequest request,
             HttpServletResponse response,
             String username,
-            String password) throws IOException {
+            String password) {
         log.info("start creating session");
         var token = UsernamePasswordAuthenticationToken.unauthenticated(
                 username,
                 password
         );
-        System.out.println(password);
-        System.out.println(SecurityUtils.getAuthenticatedUser().getPassword());
         Authentication authentication = authenticationManager.authenticate(token);
         SecurityContextHolderStrategy holder = SecurityContextHolder.getContextHolderStrategy();
         SecurityContext context = holder.createEmptyContext();
