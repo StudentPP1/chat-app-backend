@@ -21,7 +21,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -34,7 +33,6 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final SecurityContextRepository contextRepository = new HttpSessionSecurityContextRepository();
 
-    @Transactional
     public UserResponse getSession() {
         ChatUser user = SecurityUtils.getAuthenticatedUser();
         log.info("getting session user info");
