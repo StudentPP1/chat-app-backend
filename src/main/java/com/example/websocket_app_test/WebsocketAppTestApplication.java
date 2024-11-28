@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class WebsocketAppTestApplication {
-    // TODO: front for websocket
+    // TODO: connect front chat with backend
     public static void main(String[] args) {
         SpringApplication.run(WebsocketAppTestApplication.class, args);
     }
