@@ -9,7 +9,7 @@ import com.example.websocket_app_test.request.ChatCreateRequest;
 import com.example.websocket_app_test.request.MessageRequest;
 import com.example.websocket_app_test.response.ChatResponse;
 import com.example.websocket_app_test.response.MessageResponse;
-import com.example.websocket_app_test.response.UserResponse;
+import com.example.websocket_app_test.utils.application.Converter;
 import com.example.websocket_app_test.utils.exception.ApiException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -39,22 +38,16 @@ public class ChatService {
                 () -> new ApiException("chat not found", 422));
         return new ChatResponse(
                 chat.getChatId(),
-                chat.getUsers().stream().map(
-                        user -> new UserResponse(user.getName(), user.getUsername())
-                ).collect(Collectors.toList()),
+                chat.getUsers().stream().map(Converter::userConvertToResponse).toList(),
                 chat.getType()
         );
     }
 
     public List<MessageResponse> getMessages(String chatId) {
-        return messageService.findByChatId(chatId).stream().map(
-                message -> new MessageResponse(
-                        message.getChatId(),
-                        message.getFromId(),
-                        message.getToId(),
-                        message.getContent()
-                )
-        ).collect(Collectors.toList());
+        return messageService.findByChatId(chatId)
+                .stream()
+                .map(Converter::messageConvertToResponse)
+                .toList();
     }
 
     @Transactional

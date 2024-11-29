@@ -7,6 +7,7 @@ import com.example.websocket_app_test.request.MessageRequest;
 import com.example.websocket_app_test.response.ChatResponse;
 import com.example.websocket_app_test.response.MessageResponse;
 import com.example.websocket_app_test.service.ChatService;
+import com.example.websocket_app_test.utils.application.Converter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -32,12 +33,7 @@ public class ChatController {
         for (ChatUser user : chat.getUsers()) {
             messagingTemplate.convertAndSendToUser(
                     user.getUsername(),"/queue/messages",
-                    new MessageResponse(
-                            messageRequest.getChatId(),
-                            messageRequest.getFromId(),
-                            messageRequest.getToId(),
-                            messageRequest.getContent()
-                    )
+                    Converter.messageConvertToResponse(messageRequest)
             );
         }
     }
@@ -47,13 +43,13 @@ public class ChatController {
         chatService.createGroup(createRequest);
     }
 
-    @GetMapping("/get/messages")
-    public List<MessageResponse> getMessages(String chatId) {
+    @GetMapping("/get/messages/{chatId}")
+    public List<MessageResponse> getMessages(@PathVariable(name = "chatId") String chatId) {
         return chatService.getMessages(chatId);
     }
 
-    @GetMapping("/get/chat")
-    public ChatResponse getChat(String chatId) {
+    @GetMapping("/get/chat/{chatId}")
+    public ChatResponse getChat(@PathVariable(name = "chatId") String chatId) {
         return chatService.getChat(chatId);
     }
 }
