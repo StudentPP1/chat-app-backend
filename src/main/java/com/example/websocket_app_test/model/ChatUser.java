@@ -24,9 +24,6 @@ public class ChatUser implements UserDetails {
     @ManyToMany(fetch = FetchType.EAGER)
     private List<Chat> chats;
 
-    public void addChat(Chat chat) {
-        this.chats.add(chat);
-    }
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("USER"));

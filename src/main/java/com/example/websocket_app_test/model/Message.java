@@ -17,12 +17,7 @@ public class Message {
     private Long id;
 
     @Column(nullable = false)
-    private String chatId;
-
-    @Column(nullable = false)
     private String fromId;
-
-    private String toId;
 
     @Column(nullable = false)
     private String content;
@@ -30,13 +25,15 @@ public class Message {
     @Column(nullable = false)
     private String timestamp;
 
+    @ManyToOne
+    @JoinColumn(name="chat_id")
+    private Chat chat;
+
     @Override
     public String toString() {
         return "Message{" +
                 "id=" + id +
-                ", chatId='" + chatId + '\'' +
                 ", fromId='" + fromId + '\'' +
-                ", toId='" + toId + '\'' +
                 ", content='" + content + '\'' +
                 ", timestamp='" + timestamp + '\'' +
                 '}';

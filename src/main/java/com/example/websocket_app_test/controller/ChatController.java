@@ -1,11 +1,9 @@
 package com.example.websocket_app_test.controller;
 
-import com.example.websocket_app_test.model.Chat;
-import com.example.websocket_app_test.model.ChatUser;
 import com.example.websocket_app_test.request.ChatCreateRequest;
 import com.example.websocket_app_test.request.MessageRequest;
 import com.example.websocket_app_test.response.ChatResponse;
-import com.example.websocket_app_test.response.MessageResponse;
+import com.example.websocket_app_test.response.UserResponse;
 import com.example.websocket_app_test.service.ChatService;
 import com.example.websocket_app_test.utils.application.Converter;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +13,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 @RestController
@@ -29,8 +28,9 @@ public class ChatController {
     @MessageMapping("/chat")
     public void processMessage(@Payload MessageRequest messageRequest) {
         log.info("get message: " + messageRequest);
-        Chat chat = chatService.processMessage(messageRequest);
-        for (ChatUser user : chat.getUsers()) {
+        List<UserResponse> users = chatService.getUsersToSend(messageRequest);
+        log.info("send message to: " + Arrays.toString(users.toArray()));
+        for (UserResponse user : users) {
             messagingTemplate.convertAndSendToUser(
                     user.getUsername(),"/queue/messages",
                     Converter.messageConvertToResponse(messageRequest)
@@ -38,18 +38,13 @@ public class ChatController {
         }
     }
 
-    @PostMapping("/create/group")
-    public void createGroup(@RequestBody ChatCreateRequest createRequest) {
-        chatService.createGroup(createRequest);
-    }
-
-    @GetMapping("/get/messages/{chatId}")
-    public List<MessageResponse> getMessages(@PathVariable(name = "chatId") String chatId) {
-        return chatService.getMessages(chatId);
+    @PostMapping("/create/chat")
+    public ChatResponse createChat(@RequestBody ChatCreateRequest createRequest) {
+        return chatService.createChat(createRequest);
     }
 
     @GetMapping("/get/chat/{chatId}")
-    public ChatResponse getChat(@PathVariable(name = "chatId") String chatId) {
+    public ChatResponse getChat(@PathVariable(name = "chatId") Long chatId) {
         return chatService.getChat(chatId);
     }
 }

@@ -12,9 +12,24 @@ public class Chat {
     @Id
     @GeneratedValue
     private Long id;
-    private String chatId;
+
+    private String chatName;
+
     @ManyToMany(fetch = FetchType.EAGER)
     private List<ChatUser> users;
+
     @Enumerated(EnumType.STRING)
     private ChatType type;
+
+    @OneToMany(mappedBy = "chat", fetch = FetchType.EAGER)
+    private List<Message> messages;
+
+    @Override
+    public String toString() {
+        return "Chat{" +
+                "id=" + id +
+                ", chatName='" + chatName + '\'' +
+                ", type=" + type +
+                '}';
+    }
 }

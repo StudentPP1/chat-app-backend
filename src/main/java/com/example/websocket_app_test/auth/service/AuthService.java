@@ -113,8 +113,10 @@ public class AuthService {
         Authentication authentication = authenticationManager.authenticate(token);
         SecurityContextHolderStrategy holder = SecurityContextHolder.getContextHolderStrategy();
         SecurityContext context = holder.createEmptyContext();
+        log.info("set authentication");
         context.setAuthentication(authentication);
         holder.setContext(context);
+        log.info("saving context");
         contextRepository.saveContext(context, request, response);
         log.info("end creating session");
     }

@@ -8,16 +8,19 @@ import com.example.websocket_app_test.repository.ChatRepository;
 import com.example.websocket_app_test.request.ChatCreateRequest;
 import com.example.websocket_app_test.request.MessageRequest;
 import com.example.websocket_app_test.response.ChatResponse;
-import com.example.websocket_app_test.response.MessageResponse;
+import com.example.websocket_app_test.response.UserResponse;
 import com.example.websocket_app_test.utils.application.Converter;
 import com.example.websocket_app_test.utils.exception.ApiException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChatService {
@@ -25,74 +28,64 @@ public class ChatService {
     private final ChatUserService chatUserService;
     private final MessageService messageService;
 
-    public Optional<Chat> findByChatId(String chatId) {
-        return chatRepository.findByChatId(chatId);
-    }
-
-    public void save(Chat chat) {
-        chatRepository.save(chat);
-    }
-
-    public ChatResponse getChat(String chatId) {
+    public ChatResponse getChat(Long chatId) {
         Chat chat = this.findByChatId(chatId).orElseThrow(
-                () -> new ApiException("chat not found", 422));
-        return new ChatResponse(
-                chat.getChatId(),
-                chat.getUsers().stream().map(Converter::userConvertToResponse).toList(),
-                chat.getType()
+                () -> new ApiException("chat not found", 422)
         );
+        return Converter.chatConvertToResponse(chat);
     }
 
-    public List<MessageResponse> getMessages(String chatId) {
-        return messageService.findByChatId(chatId)
+    @Transactional
+    public ChatResponse createChat(ChatCreateRequest createRequest) {
+        List<ChatUser> users = createRequest.getUsernames()
                 .stream()
-                .map(Converter::messageConvertToResponse)
+                .map(chatUserService::findChatUserByUsername)
+                .toList();
+
+        Chat chat = new Chat();
+        chat.setChatName(createRequest.getChatName());
+        chat.setType(ChatType.valueOf(createRequest.getType()));
+        chat.setUsers(users);
+        chat = chatRepository.save(chat);
+
+        for (ChatUser user : users) {
+            List<Chat> chats = user.getChats();
+            chats.add(chat);
+            user.setChats(chats);
+            chatUserService.saveUser(user);
+            log.info("add chat to user: " + chat);
+        }
+
+        return Converter.chatConvertToResponse(chat);
+    }
+    @Transactional
+    public List<UserResponse> getUsersToSend(MessageRequest messageRequest) {
+        Chat chat = chatRepository.findById(messageRequest.getChatId()).orElseThrow(
+                () -> new ApiException("chat not found", 500)
+        );
+        this.saveMessage(chat, messageRequest);
+        return chat.getUsers()
+                .stream()
+                .filter(chatUser -> !Objects.equals(chatUser.getUsername(), messageRequest.getFromId()))
+                .map(Converter::userConvertToResponse)
                 .toList();
     }
 
-    @Transactional
-    public void createGroup(ChatCreateRequest createRequest) {
-        List<ChatUser> users = createRequest.getUsernames()
-                .stream().map(chatUserService::findChatUserByUsername).toList();
-
-        Chat chat = new Chat();
-        chat.setChatId(createRequest.getChatId());
-        chat.setUsers(users);
-        this.save(chat);
-
-        for (ChatUser user : users) {
-            user.addChat(chat);
-            chatUserService.save(user);
-        }
+    private Optional<Chat> findByChatId(Long chatId) {
+        return chatRepository.findById(chatId);
     }
 
-    @Transactional
-    public Chat processMessage(MessageRequest messageRequest) {
-        Message message = messageService.save(Message.builder()
-                .chatId(messageRequest.getChatId())
-                .content(messageRequest.getContent())
-                .fromId(messageRequest.getFromId())
-                .toId(messageRequest.getToId())
-                .timestamp(messageRequest.getTimestamp())
-                .build());
-        Optional<Chat> optionalChat = this.findByChatId(message.getChatId());
-        return optionalChat.orElseGet(() -> createChat(message));
-    }
+    private void saveMessage(Chat chat, MessageRequest messageRequest) {
+        Message message = Converter.requestConvertToMessage(messageRequest);
 
-    private Chat createChat(Message message) {
-        Chat chat = new Chat();
-        chat.setChatId(message.getChatId());
-        chat.setType(ChatType.PERSONAL);
-        ChatUser from = chatUserService.findChatUserByUsername(message.getFromId());
-        ChatUser to = chatUserService.findChatUserByUsername(message.getToId());
-        chat.setUsers(List.of(from, to));
-        this.save(chat);
+        message.setChat(chat);
+        message = messageService.saveMessage(message);
 
-        from.addChat(chat);
-        to.addChat(chat);
-        chatUserService.save(from);
-        chatUserService.save(to);
+        log.info("saved message: " + message);
 
-        return chat;
+        List<Message> messages = chat.getMessages();
+        messages.add(message);
+        chat.setMessages(messages);
+        chatRepository.save(chat);
     }
 }

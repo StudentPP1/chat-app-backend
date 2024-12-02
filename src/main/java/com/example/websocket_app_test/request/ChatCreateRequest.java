@@ -12,6 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class ChatCreateRequest {
-    private String chatId;
+    private String chatName;
     private List<String> usernames;
+    private String type;
 }

@@ -13,7 +13,9 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class ChatResponse {
-    private String chatId;
+    private String chatName;
+    private Long chatId;
     private List<UserResponse> users;
     private ChatType type;
+    private List<MessageResponse> messages;
 }

@@ -10,8 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class MessageResponse {
-    private String chatId;
     private String fromId;
-    private String toId;
     private String content;
+    private String timestamp;
 }
