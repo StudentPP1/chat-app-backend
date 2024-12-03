@@ -30,6 +30,7 @@ public class Chat {
                 "id=" + id +
                 ", chatName='" + chatName + '\'' +
                 ", type=" + type +
+                ", messages=" + messages +
                 '}';
     }
 }

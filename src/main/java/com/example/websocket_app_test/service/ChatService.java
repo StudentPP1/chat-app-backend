@@ -32,6 +32,7 @@ public class ChatService {
         Chat chat = this.findByChatId(chatId).orElseThrow(
                 () -> new ApiException("chat not found", 422)
         );
+        log.info("get chat: " + chat);
         return Converter.chatConvertToResponse(chat);
     }
 
@@ -53,7 +54,7 @@ public class ChatService {
             chats.add(chat);
             user.setChats(chats);
             chatUserService.saveUser(user);
-            log.info("add chat to user: " + chat);
+            log.info("add chat: " + chat.getChatName() + " to user: " + user.getUsername());
         }
 
         return Converter.chatConvertToResponse(chat);
@@ -77,15 +78,14 @@ public class ChatService {
 
     private void saveMessage(Chat chat, MessageRequest messageRequest) {
         Message message = Converter.requestConvertToMessage(messageRequest);
-
-        message.setChat(chat);
-        message = messageService.saveMessage(message);
-
-        log.info("saved message: " + message);
-
         List<Message> messages = chat.getMessages();
         messages.add(message);
         chat.setMessages(messages);
-        chatRepository.save(chat);
+        chat = chatRepository.save(chat);
+
+        log.info("chat: " + chat + " after adding message: " + message);
+
+        message.setChat(chat);
+        messageService.saveMessage(message);
     }
 }

@@ -35,7 +35,6 @@ public class Message {
                 "id=" + id +
                 ", fromId='" + fromId + '\'' +
                 ", content='" + content + '\'' +
-                ", timestamp='" + timestamp + '\'' +
                 '}';
     }
 }
