@@ -13,4 +13,5 @@ public class MessageResponse {
     private String fromId;
     private String content;
     private String timestamp;
+    private Long chatId;
 }

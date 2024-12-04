@@ -41,17 +41,18 @@ public class Converter {
         return new MessageResponse(
                 message.getFromId(),
                 message.getContent(),
-                message.getTimestamp()
+                message.getTimestamp(),
+                message.getChat().getId()
         );
     }
     public static MessageResponse messageConvertToResponse(MessageRequest message) {
         return new MessageResponse(
                 message.getFromId(),
                 message.getContent(),
-                message.getTimestamp()
+                message.getTimestamp(),
+                message.getChatId()
         );
     }
-
     public static Message requestConvertToMessage(MessageRequest message) {
         return Message.builder()
                 .fromId(message.getFromId())
