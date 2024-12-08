@@ -3,7 +3,6 @@ package com.example.websocket_app_test.controller;
 import com.example.websocket_app_test.response.ChatResponse;
 import com.example.websocket_app_test.response.UserResponse;
 import com.example.websocket_app_test.service.ChatUserService;
-import com.example.websocket_app_test.utils.application.Converter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,9 +24,6 @@ public class UserController {
 
     @GetMapping("/get/user/{username}")
     public List<UserResponse> getUser(@PathVariable String username) {
-        return chatUserService.findAllUsersLike(username)
-                .stream()
-                .map(Converter::userConvertToResponse)
-                .toList();
+        return chatUserService.findAllUsersLike(username);
     }
 }

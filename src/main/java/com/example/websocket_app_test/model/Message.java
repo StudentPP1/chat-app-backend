@@ -1,5 +1,6 @@
 package com.example.websocket_app_test.model;
 
+import com.example.websocket_app_test.enums.MessageType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,6 +29,9 @@ public class Message {
     @ManyToOne
     @JoinColumn(name="chat_id")
     private Chat chat;
+
+    @Enumerated(EnumType.STRING)
+    private MessageType type;
 
     @Override
     public String toString() {

@@ -3,12 +3,10 @@ package com.example.websocket_app_test.request;
 import com.example.websocket_app_test.utils.validation.Unique;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
-import lombok.Builder;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 
 @Data
-@Builder
 public class UserRegisterRequest {
     @Unique( // check if username is already exists in database
             columnName = "username",

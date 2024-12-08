@@ -3,7 +3,7 @@ package com.example.websocket_app_test.utils.application;
 import com.example.websocket_app_test.model.Chat;
 import com.example.websocket_app_test.model.ChatUser;
 import com.example.websocket_app_test.model.Message;
-import com.example.websocket_app_test.request.MessageRequest;
+import com.example.websocket_app_test.request.SendMessageRequest;
 import com.example.websocket_app_test.response.ChatResponse;
 import com.example.websocket_app_test.response.MessageResponse;
 import com.example.websocket_app_test.response.UserResponse;
@@ -32,28 +32,22 @@ public class Converter {
         return chatResponse;
     }
     public static UserResponse userConvertToResponse(ChatUser chatUser) {
-        return new UserResponse(
-                chatUser.getName(),
-                chatUser.getUsername()
-        );
+        return UserResponse.builder()
+                .name(chatUser.getName())
+                .username(chatUser.getUsername())
+                .build();
     }
     public static MessageResponse messageConvertToResponse(Message message) {
-        return new MessageResponse(
-                message.getFromId(),
-                message.getContent(),
-                message.getTimestamp(),
-                message.getChat().getId()
-        );
+        return MessageResponse.builder()
+                .messageId(message.getId())
+                .chatId(message.getChat().getId())
+                .content(message.getContent())
+                .fromId(message.getFromId())
+                .type(message.getType().toString())
+                .timestamp(message.getTimestamp())
+                .build();
     }
-    public static MessageResponse messageConvertToResponse(MessageRequest message) {
-        return new MessageResponse(
-                message.getFromId(),
-                message.getContent(),
-                message.getTimestamp(),
-                message.getChatId()
-        );
-    }
-    public static Message requestConvertToMessage(MessageRequest message) {
+    public static Message requestConvertToMessage(SendMessageRequest message) {
         return Message.builder()
                 .fromId(message.getFromId())
                 .content(message.getContent())
