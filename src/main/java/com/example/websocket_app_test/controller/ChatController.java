@@ -1,9 +1,6 @@
 package com.example.websocket_app_test.controller;
 
-import com.example.websocket_app_test.request.ChatCreateRequest;
-import com.example.websocket_app_test.request.DeleteMessageRequest;
-import com.example.websocket_app_test.request.SendMessageRequest;
-import com.example.websocket_app_test.request.UpdateMessageRequest;
+import com.example.websocket_app_test.request.*;
 import com.example.websocket_app_test.response.ChatResponse;
 import com.example.websocket_app_test.service.ChatService;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +34,22 @@ public class ChatController {
     @PostMapping("/create/chat")
     public ChatResponse createChat(@RequestBody ChatCreateRequest createRequest) {
         return chatService.createChat(createRequest);
+    }
+
+    @DeleteMapping("/delete/chat/")
+    public void deleteChat(@RequestBody DeleteChatRequest deleteChatRequest) {
+        chatService.deleteChat(
+                deleteChatRequest.getFromId(),
+                deleteChatRequest.getChatId()
+        );
+    }
+
+    @PostMapping("/add/users/")
+    public void addUsersToChat(@RequestBody AddUsersRequest addUsersRequest) {
+        chatService.addUsersToChat(
+                addUsersRequest.getChatId(),
+                addUsersRequest.getUsernames()
+        );
     }
 
     @GetMapping("/get/chat/{chatId}")

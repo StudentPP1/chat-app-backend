@@ -1,6 +1,7 @@
 package com.example.websocket_app_test.service;
 
 import com.example.websocket_app_test.enums.MessageType;
+import com.example.websocket_app_test.model.Chat;
 import com.example.websocket_app_test.model.Message;
 import com.example.websocket_app_test.repository.MessageRepository;
 import com.example.websocket_app_test.request.DeleteMessageRequest;
@@ -25,6 +26,10 @@ public class MessageService {
         message.setType(MessageType.DELETE);
         messageRepository.deleteById(deleteMessageRequest.getMessageId());
         return message;
+    }
+
+    public void deleteMessageByChat(Chat chat) {
+        messageRepository.deleteAll(chat.getMessages());
     }
 
     public Message saveMessage(Message message) { return messageRepository.save(message); }

@@ -22,6 +22,7 @@ public class Chat {
     private ChatType type;
 
     @OneToMany(mappedBy = "chat", fetch = FetchType.EAGER)
+    @OrderBy("timestamp")
     private List<Message> messages;
 
     @Override

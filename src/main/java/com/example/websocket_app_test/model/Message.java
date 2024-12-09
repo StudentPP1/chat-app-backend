@@ -26,7 +26,7 @@ public class Message {
     @Column(nullable = false)
     private String timestamp;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.REFRESH)
     @JoinColumn(name="chat_id")
     private Chat chat;
 

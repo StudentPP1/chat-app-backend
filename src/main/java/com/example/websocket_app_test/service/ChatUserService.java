@@ -4,7 +4,6 @@ import com.example.websocket_app_test.auth.utils.SecurityUtils;
 import com.example.websocket_app_test.model.Chat;
 import com.example.websocket_app_test.model.ChatUser;
 import com.example.websocket_app_test.repository.ChatUserRepository;
-import com.example.websocket_app_test.request.ChatCreateRequest;
 import com.example.websocket_app_test.response.ChatResponse;
 import com.example.websocket_app_test.response.UserResponse;
 import com.example.websocket_app_test.utils.application.Converter;
@@ -36,8 +35,14 @@ public class ChatUserService {
         List<Chat> chats = user.getChats();
         chats.add(chat);
         user.setChats(chats);
-        this.saveUser(user);
+        chatUserRepository.save(user);
         log.info("add chat: " + chat.getChatName() + " to user: " + user.getUsername());
+    }
+
+    public void deleteUserFromChat(Chat chat) {
+        for (ChatUser user : chat.getUsers()) {
+            this.deleteChat(user, chat);
+        }
     }
 
     public List<UserResponse> findAllUsersLike(String username) {
@@ -51,14 +56,16 @@ public class ChatUserService {
                 .toList();
     }
 
-    public List<ChatUser> getChatUsers(ChatCreateRequest createRequest) {
-        return createRequest.getUsernames()
-                .stream()
+    public List<ChatUser> getChatUsers(List<String> usernames) {
+        return usernames.stream()
                 .map(this::findChatUserByUsername)
                 .toList();
     }
 
-    private void saveUser(ChatUser user) {
+    public void deleteChat(ChatUser user, Chat chat) {
+        List<Chat> newUserChats = user.getChats();
+        newUserChats.remove(chat);
+        user.setChats(newUserChats);
         chatUserRepository.save(user);
     }
 

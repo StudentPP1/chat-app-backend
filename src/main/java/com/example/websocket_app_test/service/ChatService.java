@@ -8,6 +8,7 @@ import com.example.websocket_app_test.model.Message;
 import com.example.websocket_app_test.repository.ChatRepository;
 import com.example.websocket_app_test.request.*;
 import com.example.websocket_app_test.response.ChatResponse;
+import com.example.websocket_app_test.response.MessageResponse;
 import com.example.websocket_app_test.response.UserResponse;
 import com.example.websocket_app_test.utils.application.Converter;
 import com.example.websocket_app_test.utils.exception.ApiException;
@@ -19,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -36,7 +37,10 @@ public class ChatService {
         log.info("sending message: " + sendMessageRequest);
         Chat chat = this.getChat(sendMessageRequest.getChatId());
         Message message = this.addMessageToChat(chat, sendMessageRequest);
-        this.sendMessageToUsers(getUsers(sendMessageRequest), message);
+        this.sendMessageToUsers(
+                chat.getUsers().stream().map(Converter::userConvertToResponse).toList(),
+                Converter.messageConvertToResponse(message)
+        );
     }
 
     @Transactional
@@ -45,20 +49,25 @@ public class ChatService {
         // update message & save
         Message message = messageService.updateMessage(updateMessageRequest);
         // send to all users, except sender
-        this.sendMessageToUsers(getUsers(updateMessageRequest), message);
+        this.sendMessageToUsers(
+                getUsers(updateMessageRequest),
+                Converter.messageConvertToResponse(message)
+        );
     }
 
     @Transactional
     public void deleteMessage(DeleteMessageRequest deleteMessageRequest) {
         log.info("deleting message: " + deleteMessageRequest);
-        List<UserResponse> users = getUsers(deleteMessageRequest);
         Message message = messageService.deleteMessage(deleteMessageRequest);
-        this.sendMessageToUsers(users, message);
+        this.sendMessageToUsers(
+                getUsers(deleteMessageRequest),
+                Converter.messageConvertToResponse(message)
+        );
     }
 
     @Transactional
     public ChatResponse createChat(ChatCreateRequest createRequest) {
-        List<ChatUser> users = chatUserService.getChatUsers(createRequest);
+        List<ChatUser> users = chatUserService.getChatUsers(createRequest.getUsernames());
 
         Chat chat = new Chat();
         chat.setChatName(createRequest.getChatName());
@@ -73,12 +82,48 @@ public class ChatService {
         return Converter.chatConvertToResponse(chat);
     }
 
-    public ChatResponse getChatResponse(Long chatId) {
-        Chat chat = this.findByChatId(chatId).orElseThrow(
-                () -> new ApiException("chat not found", 500)
+    @Transactional
+    public void deleteChat(String fromId, Long chatId) {
+        Chat chat = this.getChat(chatId);
+        if (chat.getType().equals(ChatType.PERSONAL)) {
+            chatUserService.deleteUserFromChat(chat);
+            messageService.deleteMessageByChat(chat);
+            chatRepository.deleteById(chatId);
+        }
+        else {
+            ChatUser user = chat.getUsers().stream()
+                    .filter((chatUser) -> Objects.equals(chatUser.getUsername(), fromId))
+                    .findFirst().orElseThrow(() -> new ApiException("user not found", 500));
+            chatUserService.deleteChat(user, chat);
+        }
+        this.sendMessageToUsers(
+                chat.getUsers().stream().map(Converter::userConvertToResponse).toList(),
+                MessageResponse.builder().type(String.valueOf(MessageType.SYSTEM)).build()
         );
-        log.info("get chat: " + chat);
-        return Converter.chatConvertToResponse(chat);
+    }
+
+    @Transactional
+    public void addUsersToChat(Long chatId, List<String> usernames) {
+        List<ChatUser> newUsers = chatUserService.getChatUsers(usernames);
+
+        Chat chat = this.getChat(chatId);
+        List<ChatUser> users = chat.getUsers();
+        users.addAll(newUsers);
+        chat.setUsers(users);
+        chat = chatRepository.save(chat);
+
+        for (ChatUser user : newUsers) {
+            chatUserService.addChatToUser(user, chat);
+        }
+
+        this.sendMessageToUsers(
+                chat.getUsers().stream().map(Converter::userConvertToResponse).toList(),
+                MessageResponse.builder().type(String.valueOf(MessageType.SYSTEM)).build()
+        );
+    }
+
+    public ChatResponse getChatResponse(Long chatId) {
+        return Converter.chatConvertToResponse(this.getChat(chatId));
     }
 
     private List<UserResponse> getUsers(MessageRequest message) {
@@ -89,24 +134,20 @@ public class ChatService {
                 .toList();
     }
 
-    private void sendMessageToUsers(List<UserResponse> users, Message message) {
+    private void sendMessageToUsers(List<UserResponse> users, MessageResponse message) {
         log.info("send message to: " + Arrays.toString(users.toArray()));
         for (UserResponse user : users) {
             messagingTemplate.convertAndSendToUser(
-                    user.getUsername(), "/queue/messages", Converter.messageConvertToResponse(message));
+                    user.getUsername(), "/queue/messages", message);
         }
     }
 
     private Chat getChat(Long chatId) {
-        Chat chat = this.findByChatId(chatId).orElseThrow(
+        Chat chat = chatRepository.findById(chatId).orElseThrow(
                 () -> new ApiException("chat not found", 500)
         );
         log.info("get chat: " + chat);
         return chat;
-    }
-
-    private Optional<Chat> findByChatId(Long chatId) {
-        return chatRepository.findById(chatId);
     }
 
     private Message addMessageToChat(Chat chat, SendMessageRequest sendMessageRequest) {
