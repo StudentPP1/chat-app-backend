@@ -16,7 +16,6 @@ import java.util.List;
 public class Converter {
     public static ChatResponse chatConvertToResponse(Chat chat) {
         List<Message> messages = chat.getMessages();
-        log.info("messages from chat: " + messages);
         ChatResponse chatResponse = ChatResponse.builder()
                 .chatName(chat.getChatName())
                 .chatId(chat.getId())
@@ -43,14 +42,13 @@ public class Converter {
                 .messageId(message.getId())
                 .chatId(message.getChat().getId())
                 .content(message.getContent())
-                .fromId(message.getFromId())
+                .fromId(message.getFrom().getUsername())
                 .type(message.getType().toString())
                 .timestamp(message.getTimestamp())
                 .build();
     }
     public static Message requestConvertToMessage(SendMessageRequest message) {
         return Message.builder()
-                .fromId(message.getFromId())
                 .content(message.getContent())
                 .timestamp(message.getTimestamp())
                 .build();

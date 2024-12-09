@@ -18,7 +18,6 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -33,10 +32,9 @@ public class ChatService {
     private final SimpMessagingTemplate messagingTemplate;
 
     @Transactional
-    public void sendMessage(SendMessageRequest sendMessageRequest) {
-        log.info("sending message: " + sendMessageRequest);
-        Chat chat = this.getChat(sendMessageRequest.getChatId());
-        Message message = this.addMessageToChat(chat, sendMessageRequest);
+    public void sendMessage(SendMessageRequest request) {
+        Chat chat = this.getChat(request.getChatId());
+        Message message = this.addMessageToChat(chat, request);
         this.sendMessageToUsers(
                 chat.getUsers().stream().map(Converter::userConvertToResponse).toList(),
                 Converter.messageConvertToResponse(message)
@@ -44,35 +42,33 @@ public class ChatService {
     }
 
     @Transactional
-    public void updateMessage(UpdateMessageRequest updateMessageRequest) {
-        log.info("updating message: " + updateMessageRequest);
+    public void updateMessage(UpdateMessageRequest request) {
         // update message & save
-        Message message = messageService.updateMessage(updateMessageRequest);
+        Message message = messageService.updateMessage(request);
         // send to all users, except sender
         this.sendMessageToUsers(
-                getUsers(updateMessageRequest),
+                getUsers(request),
                 Converter.messageConvertToResponse(message)
         );
     }
 
     @Transactional
-    public void deleteMessage(DeleteMessageRequest deleteMessageRequest) {
-        log.info("deleting message: " + deleteMessageRequest);
-        Message message = messageService.deleteMessage(deleteMessageRequest);
+    public void deleteMessage(DeleteMessageRequest request) {
+        Message message = messageService.deleteMessage(request);
         this.sendMessageToUsers(
-                getUsers(deleteMessageRequest),
+                getUsers(request),
                 Converter.messageConvertToResponse(message)
         );
     }
 
     @Transactional
-    public ChatResponse createChat(ChatCreateRequest createRequest) {
-        List<ChatUser> users = chatUserService.getChatUsers(createRequest.getUsernames());
+    public ChatResponse createChat(ChatCreateRequest request) {
+        List<ChatUser> users = chatUserService.getChatUsers(request.getUsernames());
 
         Chat chat = new Chat();
-        chat.setChatName(createRequest.getChatName());
-        chat.setOwner(createRequest.getOwner());
-        chat.setType(ChatType.valueOf(createRequest.getType()));
+        chat.setChatName(request.getChatName());
+        chat.setOwner(request.getOwner());
+        chat.setType(ChatType.valueOf(request.getType()));
         chat.setUsers(users);
         chat = chatRepository.save(chat);
 
@@ -127,6 +123,16 @@ public class ChatService {
         return Converter.chatConvertToResponse(this.getChat(chatId));
     }
 
+    public void changeChatDetails(ChangeChatDetailsRequest request) {
+        Chat chat = this.getChat(request.getChatId());
+        chat.setChatName(request.getChatName());
+        chat = chatRepository.save(chat);
+        this.sendMessageToUsers(
+                chat.getUsers().stream().map(Converter::userConvertToResponse).toList(),
+                MessageResponse.builder().type(String.valueOf(MessageType.SYSTEM)).build()
+        );
+    }
+
     private List<UserResponse> getUsers(MessageRequest message) {
         Chat chat = this.getChat(message.getChatId());
         return chat.getUsers()
@@ -136,7 +142,6 @@ public class ChatService {
     }
 
     private void sendMessageToUsers(List<UserResponse> users, MessageResponse message) {
-        log.info("send message to: " + Arrays.toString(users.toArray()));
         for (UserResponse user : users) {
             messagingTemplate.convertAndSendToUser(
                     user.getUsername(), "/queue/messages", message);
@@ -144,15 +149,14 @@ public class ChatService {
     }
 
     private Chat getChat(Long chatId) {
-        Chat chat = chatRepository.findById(chatId).orElseThrow(
+        return chatRepository.findById(chatId).orElseThrow(
                 () -> new ApiException("chat not found", 500)
         );
-        log.info("get chat: " + chat);
-        return chat;
     }
 
-    private Message addMessageToChat(Chat chat, SendMessageRequest sendMessageRequest) {
-        Message message = Converter.requestConvertToMessage(sendMessageRequest);
+    private Message addMessageToChat(Chat chat, SendMessageRequest request) {
+        Message message = Converter.requestConvertToMessage(request);
+        message.setFrom(chatUserService.findUser(request.getFromId()));
         message.setChat(chat);
         message.setType(MessageType.SENT);
         message = messageService.saveMessage(message);
@@ -160,9 +164,7 @@ public class ChatService {
         List<Message> messages = chat.getMessages();
         messages.add(message);
         chat.setMessages(messages);
-        chat = chatRepository.save(chat);
-
-        log.info("chat: " + chat + " after adding message: " + message);
+        chatRepository.save(chat);
 
         return message;
     }
@@ -177,7 +179,6 @@ public class ChatService {
             chat.setUsers(chatUsers);
             chat = chatRepository.save(chat);
             chatUserService.deleteChat(fromId, chat);
-            log.info("chat users after leaving user: " + chat.getUsers());
         }
     }
 

@@ -25,6 +25,9 @@ public class ChatUser implements UserDetails {
     @ManyToMany(fetch = FetchType.EAGER)
     private List<Chat> chats = new ArrayList<>();
 
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.REFRESH, mappedBy = "from")
+    private List<Message> messages = new ArrayList<>();
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("USER"));

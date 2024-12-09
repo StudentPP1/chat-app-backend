@@ -17,8 +17,9 @@ public class Message {
     @GeneratedValue
     private Long id;
 
-    @Column(nullable = false)
-    private String fromId;
+    @ManyToOne
+    @JoinColumn(name="chat_user_id")
+    private ChatUser from;
 
     @Column(nullable = false)
     private String content;
@@ -37,7 +38,7 @@ public class Message {
     public String toString() {
         return "Message{" +
                 "id=" + id +
-                ", fromId='" + fromId + '\'' +
+                ", from='" + from + '\'' +
                 ", content='" + content + '\'' +
                 '}';
     }

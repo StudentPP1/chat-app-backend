@@ -36,6 +36,11 @@ public class ChatController {
         return chatService.createChat(createRequest);
     }
 
+    @PostMapping("/update/chat")
+    public void createChat(@RequestBody ChangeChatDetailsRequest detailsRequest) {
+        chatService.changeChatDetails(detailsRequest);
+    }
+
     @DeleteMapping("/delete/chat/")
     public void deleteChat(@RequestBody DeleteChatRequest deleteChatRequest) {
         chatService.deleteChat(
