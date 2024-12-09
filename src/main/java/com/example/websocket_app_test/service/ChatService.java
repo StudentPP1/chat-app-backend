@@ -71,6 +71,7 @@ public class ChatService {
 
         Chat chat = new Chat();
         chat.setChatName(createRequest.getChatName());
+        chat.setOwner(createRequest.getOwner());
         chat.setType(ChatType.valueOf(createRequest.getType()));
         chat.setUsers(users);
         chat = chatRepository.save(chat);
@@ -85,19 +86,19 @@ public class ChatService {
     @Transactional
     public void deleteChat(String fromId, Long chatId) {
         Chat chat = this.getChat(chatId);
+        List<UserResponse> users = chat.getUsers().stream()
+                .map(Converter::userConvertToResponse)
+                .toList();
+
         if (chat.getType().equals(ChatType.PERSONAL)) {
-            chatUserService.deleteUserFromChat(chat);
-            messageService.deleteMessageByChat(chat);
-            chatRepository.deleteById(chatId);
+            this.deleteChat(chat);
         }
         else {
-            ChatUser user = chat.getUsers().stream()
-                    .filter((chatUser) -> Objects.equals(chatUser.getUsername(), fromId))
-                    .findFirst().orElseThrow(() -> new ApiException("user not found", 500));
-            chatUserService.deleteChat(user, chat);
+           this.deleteGroup(chat, fromId);
         }
+
         this.sendMessageToUsers(
-                chat.getUsers().stream().map(Converter::userConvertToResponse).toList(),
+                users,
                 MessageResponse.builder().type(String.valueOf(MessageType.SYSTEM)).build()
         );
     }
@@ -164,5 +165,25 @@ public class ChatService {
         log.info("chat: " + chat + " after adding message: " + message);
 
         return message;
+    }
+
+    private void deleteGroup(Chat chat, String fromId) {
+        if (Objects.equals(chat.getOwner(), fromId)) {
+            this.deleteChat(chat);
+        }
+        else {
+            List<ChatUser> chatUsers = chat.getUsers();
+            chatUsers.remove(chatUserService.findUser(fromId));
+            chat.setUsers(chatUsers);
+            chat = chatRepository.save(chat);
+            chatUserService.deleteChat(fromId, chat);
+            log.info("chat users after leaving user: " + chat.getUsers());
+        }
+    }
+
+    private void deleteChat(Chat chat) {
+        chatUserService.deleteUserFromChat(chat);
+        messageService.deleteMessageByChat(chat);
+        chatRepository.delete(chat);
     }
 }

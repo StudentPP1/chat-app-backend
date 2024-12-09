@@ -41,7 +41,7 @@ public class ChatUserService {
 
     public void deleteUserFromChat(Chat chat) {
         for (ChatUser user : chat.getUsers()) {
-            this.deleteChat(user, chat);
+            this.deleteChat(user.getUsername(), chat);
         }
     }
 
@@ -62,14 +62,22 @@ public class ChatUserService {
                 .toList();
     }
 
-    public void deleteChat(ChatUser user, Chat chat) {
+    public void deleteChat(String username, Chat chat) {
+        ChatUser user = this.findChatUserByUsername(username);
         List<Chat> newUserChats = user.getChats();
         newUserChats.remove(chat);
         user.setChats(newUserChats);
-        chatUserRepository.save(user);
+        user = chatUserRepository.save(user);
+        log.info("user after deleting chat: " + user);
     }
 
     private ChatUser findChatUserByUsername(String username) {
+        return chatUserRepository.findByUsername(username).orElseThrow(
+                () -> new ApiException("user not found", 422)
+        );
+    }
+
+    public ChatUser findUser(String username) {
         return chatUserRepository.findByUsername(username).orElseThrow(
                 () -> new ApiException("user not found", 422)
         );

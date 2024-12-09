@@ -21,6 +21,7 @@ public class Converter {
                 .chatName(chat.getChatName())
                 .chatId(chat.getId())
                 .users(chat.getUsers().stream().map(Converter::userConvertToResponse).toList())
+                .owner(chat.getOwner())
                 .type(chat.getType())
                 .build();
         if (messages == null) {

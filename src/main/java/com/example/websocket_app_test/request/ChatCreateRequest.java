@@ -7,6 +7,7 @@ import java.util.List;
 @Data
 public class ChatCreateRequest {
     private String chatName;
+    private String owner;
     private List<String> usernames;
     private String type;
 }

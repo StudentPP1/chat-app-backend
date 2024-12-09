@@ -11,6 +11,7 @@ import java.util.List;
 public class ChatResponse {
     private String chatName;
     private Long chatId;
+    private String owner;
     private List<UserResponse> users;
     private ChatType type;
     private List<MessageResponse> messages;

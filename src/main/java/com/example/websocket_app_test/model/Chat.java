@@ -15,6 +15,8 @@ public class Chat {
 
     private String chatName;
 
+    private String owner;
+
     @ManyToMany(fetch = FetchType.EAGER)
     private List<ChatUser> users;
 
