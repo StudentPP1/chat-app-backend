@@ -7,7 +7,9 @@ import com.example.websocket_app_test.service.ChatUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @Slf4j
@@ -29,5 +31,10 @@ public class UserController {
     @PostMapping("/update/user")
     public UserResponse updateUser(@RequestBody ChangeUserDetailsRequest request) {
         return chatUserService.updateUserDetails(request);
+    }
+
+    @PatchMapping("/update/user/img")
+    public UserResponse updateUser(@RequestParam("file") MultipartFile file) throws IOException {
+        return chatUserService.updateUserDetails(file);
     }
 }

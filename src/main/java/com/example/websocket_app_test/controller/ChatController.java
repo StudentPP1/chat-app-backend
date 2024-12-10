@@ -8,6 +8,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @RestController
 @Slf4j
@@ -37,8 +40,15 @@ public class ChatController {
     }
 
     @PostMapping("/update/chat")
-    public void createChat(@RequestBody ChangeChatDetailsRequest detailsRequest) {
+    public void updateChat(@RequestBody ChangeChatDetailsRequest detailsRequest) {
         chatService.changeChatDetails(detailsRequest);
+    }
+
+    @PostMapping("/update/chat/{chatId}")
+    public void updateChat(
+            @PathVariable(name = "chatId") Long chatId,
+            @RequestParam("file") MultipartFile file) throws IOException {
+        chatService.changeChatDetails(chatId, file);
     }
 
     @DeleteMapping("/delete/chat/")

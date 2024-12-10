@@ -21,6 +21,7 @@ public class Converter {
                 .chatId(chat.getId())
                 .users(chat.getUsers().stream().map(Converter::userConvertToResponse).toList())
                 .owner(chat.getOwner())
+                .img(chat.getImg())
                 .type(chat.getType())
                 .build();
         if (messages == null) {
@@ -35,6 +36,7 @@ public class Converter {
         return UserResponse.builder()
                 .name(chatUser.getName())
                 .username(chatUser.getUsername())
+                .img(chatUser.getImg())
                 .build();
     }
     public static MessageResponse messageConvertToResponse(Message message) {

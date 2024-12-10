@@ -17,7 +17,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
@@ -126,6 +128,16 @@ public class ChatService {
     public void changeChatDetails(ChangeChatDetailsRequest request) {
         Chat chat = this.getChat(request.getChatId());
         chat.setChatName(request.getChatName());
+        chat = chatRepository.save(chat);
+        this.sendMessageToUsers(
+                chat.getUsers().stream().map(Converter::userConvertToResponse).toList(),
+                MessageResponse.builder().type(String.valueOf(MessageType.SYSTEM)).build()
+        );
+    }
+
+    public void changeChatDetails(Long chatId, MultipartFile file) throws IOException {
+        Chat chat = this.getChat(chatId);
+        chat.setImg(file.getBytes());
         chat = chatRepository.save(chat);
         this.sendMessageToUsers(
                 chat.getUsers().stream().map(Converter::userConvertToResponse).toList(),

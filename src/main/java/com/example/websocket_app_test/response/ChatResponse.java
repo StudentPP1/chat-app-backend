@@ -12,6 +12,7 @@ public class ChatResponse {
     private String chatName;
     private Long chatId;
     private String owner;
+    private byte[] img;
     private List<UserResponse> users;
     private ChatType type;
     private List<MessageResponse> messages;

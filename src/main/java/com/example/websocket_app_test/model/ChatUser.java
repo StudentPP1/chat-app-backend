@@ -21,6 +21,7 @@ public class ChatUser implements UserDetails {
     @Column(nullable = false)
     private String password;
     private String name;
+    private byte[] img;
 
     @ManyToMany(fetch = FetchType.EAGER)
     private List<Chat> chats = new ArrayList<>();

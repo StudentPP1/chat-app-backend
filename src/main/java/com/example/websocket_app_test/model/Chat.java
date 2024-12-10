@@ -12,16 +12,14 @@ public class Chat {
     @Id
     @GeneratedValue
     private Long id;
-
     private String chatName;
-
     private String owner;
+    private byte[] img;
+    @Enumerated(EnumType.STRING)
+    private ChatType type;
 
     @ManyToMany(fetch = FetchType.EAGER)
     private List<ChatUser> users;
-
-    @Enumerated(EnumType.STRING)
-    private ChatType type;
 
     @OneToMany(mappedBy = "chat", fetch = FetchType.EAGER)
     @OrderBy("timestamp")
