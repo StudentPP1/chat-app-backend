@@ -6,6 +6,7 @@ import com.example.websocket_app_test.repository.ChatUserRepository;
 import com.example.websocket_app_test.request.UserLoginRequest;
 import com.example.websocket_app_test.request.UserRegisterRequest;
 import com.example.websocket_app_test.response.UserResponse;
+import com.example.websocket_app_test.utils.application.Converter;
 import com.example.websocket_app_test.utils.exception.ApiException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -36,10 +37,7 @@ public class AuthService {
     public UserResponse getSession() {
         ChatUser user = SecurityUtils.getAuthenticatedUser();
         log.info("getting session user info");
-        return UserResponse.builder()
-                .name(user.getName())
-                .username(user.getUsername())
-                .build();
+        return Converter.userConvertToResponse(user);
     }
 
     public void login(UserLoginRequest userLoginRequest,

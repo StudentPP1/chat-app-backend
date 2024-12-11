@@ -4,7 +4,6 @@ import com.example.websocket_app_test.enums.ChatType;
 import com.example.websocket_app_test.enums.MessageType;
 import com.example.websocket_app_test.model.Chat;
 import com.example.websocket_app_test.model.ChatUser;
-import com.example.websocket_app_test.model.Message;
 import com.example.websocket_app_test.repository.ChatRepository;
 import com.example.websocket_app_test.request.*;
 import com.example.websocket_app_test.response.ChatResponse;
@@ -34,38 +33,10 @@ public class ChatService {
     private final SimpMessagingTemplate messagingTemplate;
 
     @Transactional
-    public void sendMessage(SendMessageRequest request) {
-        Chat chat = this.getChat(request.getChatId());
-        Message message = this.addMessageToChat(chat, request);
-        this.sendMessageToUsers(
-                chat.getUsers().stream().map(Converter::userConvertToResponse).toList(),
-                Converter.messageConvertToResponse(message)
-        );
-    }
-
-    @Transactional
-    public void updateMessage(UpdateMessageRequest request) {
-        // update message & save
-        Message message = messageService.updateMessage(request);
-        // send to all users, except sender
-        this.sendMessageToUsers(
-                getUsers(request),
-                Converter.messageConvertToResponse(message)
-        );
-    }
-
-    @Transactional
-    public void deleteMessage(DeleteMessageRequest request) {
-        Message message = messageService.deleteMessage(request);
-        this.sendMessageToUsers(
-                getUsers(request),
-                Converter.messageConvertToResponse(message)
-        );
-    }
-
-    @Transactional
     public ChatResponse createChat(ChatCreateRequest request) {
         List<ChatUser> users = chatUserService.getChatUsers(request.getUsernames());
+
+        log.info(users.stream().map(ChatUser::getUsername).toString());
 
         Chat chat = new Chat();
         chat.setChatName(request.getChatName());
@@ -73,6 +44,8 @@ public class ChatService {
         chat.setType(ChatType.valueOf(request.getType()));
         chat.setUsers(users);
         chat = chatRepository.save(chat);
+
+        log.info(String.valueOf(chat));
 
         for (ChatUser user : users) {
             chatUserService.addChatToUser(user, chat);
@@ -145,40 +118,21 @@ public class ChatService {
         );
     }
 
-    private List<UserResponse> getUsers(MessageRequest message) {
-        Chat chat = this.getChat(message.getChatId());
-        return chat.getUsers()
-                .stream()
-                .map(Converter::userConvertToResponse)
-                .toList();
-    }
-
-    private void sendMessageToUsers(List<UserResponse> users, MessageResponse message) {
+    public void sendMessageToUsers(List<UserResponse> users, MessageResponse message) {
         for (UserResponse user : users) {
             messagingTemplate.convertAndSendToUser(
                     user.getUsername(), "/queue/messages", message);
         }
     }
 
-    private Chat getChat(Long chatId) {
+    public void saveChat(Chat chat) {
+        chatRepository.save(chat);
+    }
+
+    public Chat getChat(Long chatId) {
         return chatRepository.findById(chatId).orElseThrow(
                 () -> new ApiException("chat not found", 500)
         );
-    }
-
-    private Message addMessageToChat(Chat chat, SendMessageRequest request) {
-        Message message = Converter.requestConvertToMessage(request);
-        message.setFrom(chatUserService.findUser(request.getFromId()));
-        message.setChat(chat);
-        message.setType(MessageType.SENT);
-        message = messageService.saveMessage(message);
-
-        List<Message> messages = chat.getMessages();
-        messages.add(message);
-        chat.setMessages(messages);
-        chatRepository.save(chat);
-
-        return message;
     }
 
     private void deleteGroup(Chat chat, String fromId) {

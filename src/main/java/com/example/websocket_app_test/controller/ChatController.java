@@ -2,6 +2,7 @@ package com.example.websocket_app_test.controller;
 
 import com.example.websocket_app_test.request.*;
 import com.example.websocket_app_test.response.ChatResponse;
+import com.example.websocket_app_test.service.ChatMessageService;
 import com.example.websocket_app_test.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,21 +18,21 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class ChatController {
     private final ChatService chatService;
-
+    private final ChatMessageService messageService;
     // send messages: create new queue or update old one
     @MessageMapping("/sendMessage")
     public void sendMessage(@Payload SendMessageRequest sendMessageRequest) {
-        chatService.sendMessage(sendMessageRequest);
+        messageService.sendMessage(sendMessageRequest);
     }
 
     @MessageMapping("/updateMessage")
     public void updateMessage(@Payload UpdateMessageRequest updateMessageRequest) {
-        chatService.updateMessage(updateMessageRequest);
+        messageService.updateMessage(updateMessageRequest);
     }
 
     @MessageMapping("/deleteMessage")
     public void deleteMessage(@Payload DeleteMessageRequest deleteMessageRequest) {
-        chatService.deleteMessage(deleteMessageRequest);
+        messageService.deleteMessage(deleteMessageRequest);
     }
 
     @PostMapping("/create/chat")
