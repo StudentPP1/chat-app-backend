@@ -15,6 +15,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return userRepository.findByUsername(username)
-                .orElseThrow(() -> new ApiException("Cannot find user with username: " + username, 422));
+                .orElseThrow(
+                        () -> ApiException.builder()
+                                .status(500)
+                                .message("Cannot find user with username: " + username)
+                                .build()
+                );
     }
 }

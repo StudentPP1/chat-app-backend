@@ -23,8 +23,6 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -36,7 +34,6 @@ public class AuthService {
 
     public UserResponse getSession() {
         ChatUser user = SecurityUtils.getAuthenticatedUser();
-        log.info("getting session user info");
         return Converter.userConvertToResponse(user);
     }
 
@@ -44,26 +41,16 @@ public class AuthService {
                       HttpServletRequest request,
                       HttpServletResponse response
     ) {
-        Optional<ChatUser> userOptional = userRepository.findByUsername(
-                userLoginRequest.getUsername()
-        );
-        boolean passwordMatch = passwordEncoder.matches(
-                userLoginRequest.getPassword(),
-                userOptional.orElseThrow(
-                        () -> new ApiException("user not found", 422)
-                ).getPassword()
-        );
-        // check is user in context & get session id to cookie
-        if (passwordMatch) {
+        // set session cookie in response
+        try {
             createSession(
                     request,
                     response,
                     userLoginRequest.getUsername(),
                     userLoginRequest.getPassword()
             );
-        }
-        else {
-            throw new ApiException("user not found", 422);
+        } catch (Exception exception) {
+            throw ApiException.builder().status(500).message("User not found").build();
         }
     }
 
@@ -77,9 +64,10 @@ public class AuthService {
         user.setUsername(userRegisterRequest.getUsername());
         user.setPassword(passwordEncoder.encode(userRegisterRequest.getPassword()));
         user = userRepository.save(user);
+
         // save user to context
         authenticateUser(user);
-        // check is user in context & get session id to cookie
+        //  set session cookie in response
         createSession(
                 request,
                 response,
@@ -92,8 +80,9 @@ public class AuthService {
         log.info("start authentication");
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                 user,
-                null,
-                user.getAuthorities());
+                user.getPassword(),
+                user.getAuthorities()
+        );
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
         log.info("end authentication");
     }
@@ -102,7 +91,8 @@ public class AuthService {
             HttpServletRequest request,
             HttpServletResponse response,
             String username,
-            String password) {
+            String password
+    ) {
         log.info("start creating session");
         var token = UsernamePasswordAuthenticationToken.unauthenticated(
                 username,

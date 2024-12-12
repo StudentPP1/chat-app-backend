@@ -13,6 +13,7 @@ import java.util.Optional;
 public interface ChatUserRepository extends JpaRepository<ChatUser, Long> {
     Optional<ChatUser> findByUsername(String username);
 
-    @Query(value="SELECT * FROM chat_user WHERE username like concat('%',:username,'%')", nativeQuery=true)
+    @Query(value="SELECT * FROM chat_user WHERE username like concat('%', :username, '%')",
+            nativeQuery=true)
     List<ChatUser> findAllByUsername(@Param("username") String username);
 }

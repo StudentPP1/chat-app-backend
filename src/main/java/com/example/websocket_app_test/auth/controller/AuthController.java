@@ -30,7 +30,6 @@ public class AuthController {
 
     @GetMapping("/getSession")
     public ResponseEntity<UserResponse> getSession() {
-        log.info("getting session");
         return ResponseEntity.ok(authService.getSession());
     }
 
