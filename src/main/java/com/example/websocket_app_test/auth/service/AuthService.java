@@ -1,12 +1,12 @@
 package com.example.websocket_app_test.auth.service;
 
-import com.example.websocket_app_test.auth.utils.SecurityUtils;
 import com.example.websocket_app_test.model.ChatUser;
 import com.example.websocket_app_test.repository.ChatUserRepository;
 import com.example.websocket_app_test.request.UserLoginRequest;
 import com.example.websocket_app_test.request.UserRegisterRequest;
 import com.example.websocket_app_test.response.UserResponse;
-import com.example.websocket_app_test.utils.application.Converter;
+import com.example.websocket_app_test.service.ChatUserService;
+import com.example.websocket_app_test.utils.application.Mapper;
 import com.example.websocket_app_test.utils.exception.ApiException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,6 +18,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextHolderStrategy;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
@@ -31,10 +32,10 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final SecurityContextRepository contextRepository = new HttpSessionSecurityContextRepository();
+    private final ChatUserService chatUserService;
 
     public UserResponse getSession() {
-        ChatUser user = SecurityUtils.getAuthenticatedUser();
-        return Converter.userConvertToResponse(user);
+        return Mapper.userConvertToResponse(chatUserService.findUser());
     }
 
     public void login(UserLoginRequest userLoginRequest,
@@ -76,15 +77,15 @@ public class AuthService {
         );
     }
 
-    private void authenticateUser(ChatUser user) {
-        log.info("start authentication");
+    private void authenticateUser(UserDetails user) {
+        log.info("Authentication: start authentication");
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                 user,
                 user.getPassword(),
                 user.getAuthorities()
         );
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-        log.info("end authentication");
+        log.info("Authentication: end authentication");
     }
 
     private void createSession(
@@ -93,7 +94,7 @@ public class AuthService {
             String username,
             String password
     ) {
-        log.info("start creating session");
+        log.info("Session: start creating session");
         var token = UsernamePasswordAuthenticationToken.unauthenticated(
                 username,
                 password
@@ -101,11 +102,11 @@ public class AuthService {
         Authentication authentication = authenticationManager.authenticate(token);
         SecurityContextHolderStrategy holder = SecurityContextHolder.getContextHolderStrategy();
         SecurityContext context = holder.createEmptyContext();
-        log.info("set authentication");
+        log.info("Session: set authentication");
         context.setAuthentication(authentication);
         holder.setContext(context);
-        log.info("saving context");
+        log.info("Session: saving context");
         contextRepository.saveContext(context, request, response);
-        log.info("end creating session");
+        log.info("Session: end creating session");
     }
 }

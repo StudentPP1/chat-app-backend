@@ -8,7 +8,7 @@ import com.example.websocket_app_test.request.MessageRequest;
 import com.example.websocket_app_test.request.SendMessageRequest;
 import com.example.websocket_app_test.request.UpdateMessageRequest;
 import com.example.websocket_app_test.response.UserResponse;
-import com.example.websocket_app_test.utils.application.Converter;
+import com.example.websocket_app_test.utils.application.Mapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +28,7 @@ public class ChatMessageService {
         Message message = this.addMessageToChat(chat, request);
         chatService.sendMessageToUsers(
                 this.getUsers(request),
-                Converter.messageConvertToResponse(message)
+                Mapper.messageConvertToResponse(message)
         );
     }
 
@@ -39,7 +39,7 @@ public class ChatMessageService {
         // send to all users, except sender
         chatService.sendMessageToUsers(
                 this.getUsers(request),
-                Converter.messageConvertToResponse(message)
+                Mapper.messageConvertToResponse(message)
         );
     }
 
@@ -48,12 +48,12 @@ public class ChatMessageService {
         Message message = messageService.deleteMessage(request);
         chatService.sendMessageToUsers(
                 this.getUsers(request),
-                Converter.messageConvertToResponse(message)
+                Mapper.messageConvertToResponse(message)
         );
     }
 
     private Message addMessageToChat(Chat chat, SendMessageRequest request) {
-        Message message = Converter.requestConvertToMessage(request);
+        Message message = Mapper.requestConvertToMessage(request);
         message.setFrom(userService.findUser(request.getFromId()));
         message.setChat(chat);
         message.setType(MessageType.SENT);
@@ -71,7 +71,7 @@ public class ChatMessageService {
         Chat chat = chatService.getChat(message.getChatId());
         return chat.getUsers()
                 .stream()
-                .map(Converter::userConvertToResponse)
+                .map(Mapper::userConvertToResponse)
                 .toList();
     }
 }

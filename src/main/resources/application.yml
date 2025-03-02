@@ -18,6 +18,7 @@ logging:
   level:
     org.springframework.security: trace
 application:
+  csrf-attribute: _csrf
   front-end-url: ${env.FRONT_END_URL}
   allowed-origins: ${env.FRONT_END_URL}
   login-success-url: ${env.FRONT_END_URL}/
