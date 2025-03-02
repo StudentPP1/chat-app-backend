@@ -11,6 +11,7 @@ import com.example.websocket_app_test.utils.application.Mapper;
 import com.example.websocket_app_test.utils.exception.ApiException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,7 +28,7 @@ public class ChatUserService {
 
     @Transactional
     public List<ChatResponse> getChats() {
-        ChatUser user = SecurityUtils.getAuthenticatedUser();
+        ChatUser user = this.findUser();
         List<Chat> chats = this.findUser(user.getUsername()).getChats();
         return chats.stream().map(Mapper::chatConvertToResponse).toList();
     }
@@ -46,7 +47,7 @@ public class ChatUserService {
     }
 
     public List<UserResponse> findAllUsersLike(String username) {
-        ChatUser chatUser = SecurityUtils.getAuthenticatedUser();
+        ChatUser chatUser = this.findUser();
         List<ChatUser> chatUsers = chatUserRepository.findAllByUsername(username)
                 .stream()
                 .filter((user) -> !Objects.equals(user.getUsername(), chatUser.getUsername()))
@@ -71,19 +72,25 @@ public class ChatUserService {
     }
 
     public UserResponse updateUserDetails(ChangeUserDetailsRequest request) {
-        ChatUser user = SecurityUtils.getAuthenticatedUser();
+        ChatUser user = this.findUser();
         user.setUsername(request.getNewUsername());
         user.setName(request.getNewName());
         user = chatUserRepository.save(user);
         return Mapper.userConvertToResponse(user);
     }
     public UserResponse updateUserDetails(MultipartFile file) throws IOException {
-        ChatUser user = SecurityUtils.getAuthenticatedUser();
+        ChatUser user = this.findUser();
         user.setImg(file.getBytes());
         user = chatUserRepository.save(user);
         return Mapper.userConvertToResponse(user);
     }
 
+    public ChatUser findUser() {
+        UserDetails userDetails = SecurityUtils.getAuthenticatedUser();
+        return chatUserRepository.findByUsername(userDetails.getUsername()).orElseThrow(
+                () -> new ApiException("user not found", 422)
+        );
+    }
     public ChatUser findUser(String username) {
         return chatUserRepository.findByUsername(username).orElseThrow(
                 () -> new ApiException("user not found", 422)

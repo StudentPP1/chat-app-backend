@@ -6,6 +6,7 @@ import com.example.websocket_app_test.repository.ChatUserRepository;
 import com.example.websocket_app_test.request.UserLoginRequest;
 import com.example.websocket_app_test.request.UserRegisterRequest;
 import com.example.websocket_app_test.response.UserResponse;
+import com.example.websocket_app_test.service.ChatUserService;
 import com.example.websocket_app_test.utils.application.Mapper;
 import com.example.websocket_app_test.utils.exception.ApiException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,6 +19,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextHolderStrategy;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
@@ -31,10 +33,10 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final SecurityContextRepository contextRepository = new HttpSessionSecurityContextRepository();
+    private final ChatUserService chatUserService;
 
     public UserResponse getSession() {
-        ChatUser user = SecurityUtils.getAuthenticatedUser();
-        return Mapper.userConvertToResponse(user);
+        return Mapper.userConvertToResponse(chatUserService.findUser());
     }
 
     public void login(UserLoginRequest userLoginRequest,
@@ -76,7 +78,7 @@ public class AuthService {
         );
     }
 
-    private void authenticateUser(ChatUser user) {
+    private void authenticateUser(UserDetails user) {
         log.info("start authentication");
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                 user,

@@ -1,9 +1,9 @@
 package com.example.websocket_app_test.auth.utils;
 
-import com.example.websocket_app_test.model.ChatUser;
 import com.example.websocket_app_test.utils.exception.ApiException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 
@@ -11,9 +11,9 @@ import org.springframework.security.web.context.SecurityContextRepository;
 public class SecurityUtils {
     private static final SecurityContextRepository securityRepository = new HttpSessionSecurityContextRepository();
 
-    public static ChatUser getAuthenticatedUser() {
+    public static UserDetails getAuthenticatedUser() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal instanceof ChatUser user) {
+        if (principal instanceof UserDetails user) {
             return user;
         }
         else {
