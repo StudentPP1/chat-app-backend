@@ -10,7 +10,6 @@ import com.example.websocket_app_test.response.UserResponse;
 import com.example.websocket_app_test.utils.application.Mapper;
 import com.example.websocket_app_test.utils.exception.ApiException;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,7 +19,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
-@Slf4j
+
 @Service
 @RequiredArgsConstructor
 public class ChatUserService {

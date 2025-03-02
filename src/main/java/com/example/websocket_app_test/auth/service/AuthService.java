@@ -1,6 +1,5 @@
 package com.example.websocket_app_test.auth.service;
 
-import com.example.websocket_app_test.auth.utils.SecurityUtils;
 import com.example.websocket_app_test.model.ChatUser;
 import com.example.websocket_app_test.repository.ChatUserRepository;
 import com.example.websocket_app_test.request.UserLoginRequest;
@@ -79,14 +78,14 @@ public class AuthService {
     }
 
     private void authenticateUser(UserDetails user) {
-        log.info("start authentication");
+        log.info("Authentication: start authentication");
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                 user,
                 user.getPassword(),
                 user.getAuthorities()
         );
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-        log.info("end authentication");
+        log.info("Authentication: end authentication");
     }
 
     private void createSession(
@@ -95,7 +94,7 @@ public class AuthService {
             String username,
             String password
     ) {
-        log.info("start creating session");
+        log.info("Session: start creating session");
         var token = UsernamePasswordAuthenticationToken.unauthenticated(
                 username,
                 password
@@ -103,11 +102,11 @@ public class AuthService {
         Authentication authentication = authenticationManager.authenticate(token);
         SecurityContextHolderStrategy holder = SecurityContextHolder.getContextHolderStrategy();
         SecurityContext context = holder.createEmptyContext();
-        log.info("set authentication");
+        log.info("Session: set authentication");
         context.setAuthentication(authentication);
         holder.setContext(context);
-        log.info("saving context");
+        log.info("Session: saving context");
         contextRepository.saveContext(context, request, response);
-        log.info("end creating session");
+        log.info("Session: end creating session");
     }
 }

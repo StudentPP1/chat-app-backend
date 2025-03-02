@@ -7,12 +7,10 @@ import com.example.websocket_app_test.request.SendMessageRequest;
 import com.example.websocket_app_test.response.ChatResponse;
 import com.example.websocket_app_test.response.MessageResponse;
 import com.example.websocket_app_test.response.UserResponse;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Slf4j
 public class Mapper {
     public static ChatResponse chatConvertToResponse(Chat chat) {
         List<Message> messages = chat.getMessages();

@@ -1,7 +1,6 @@
 package com.example.websocket_app_test.utils.exception;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -16,9 +15,9 @@ import java.util.List;
 import java.util.Objects;
 
 
+@Slf4j
 @ControllerAdvice
 public class ExceptionHandler extends ResponseEntityExceptionHandler {
-    private final Logger logger = LoggerFactory.getLogger(ExceptionHandler.class);
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
             MethodArgumentNotValidException ex,
@@ -29,7 +28,7 @@ public class ExceptionHandler extends ResponseEntityExceptionHandler {
         List<Object> errorMessages = Arrays.stream(
                 Objects.requireNonNull(ex.getDetailMessageArguments())).toList();
 
-        logger.error("valid exception: " + errorMessages.get(1));
+        log.error("valid exception: " + errorMessages.get(1));
         HttpErrorResponse response = HttpErrorResponse.of(
                 (String) errorMessages.get(1),
                 422);
@@ -39,7 +38,7 @@ public class ExceptionHandler extends ResponseEntityExceptionHandler {
 
     @org.springframework.web.bind.annotation.ExceptionHandler(ApiException.class)
     public ResponseEntity<HttpErrorResponse> handleException(ApiException e) {
-        logger.error("handling ApiException: {}", e.getMessage());
+        log.error("handling ApiException: {}", e.getMessage());
         var response = HttpErrorResponse.of(e.getMessage(), e.getStatus());
         return new ResponseEntity<>(response, HttpStatus.valueOf(e.getStatus()));
     }
@@ -47,7 +46,7 @@ public class ExceptionHandler extends ResponseEntityExceptionHandler {
     // handle other errors as server unexpected errors
     @org.springframework.web.bind.annotation.ExceptionHandler(Exception.class)
     public ResponseEntity<HttpErrorResponse> handleException(Exception e) {
-        logger.error("Unhandled exception", e);
+        log.error("Unhandled exception", e);
         var response = HttpErrorResponse.of("Unexpected error", 500);
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }

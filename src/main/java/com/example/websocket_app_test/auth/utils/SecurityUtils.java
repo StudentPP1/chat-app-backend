@@ -10,7 +10,6 @@ import org.springframework.security.web.context.SecurityContextRepository;
 @Slf4j
 public class SecurityUtils {
     private static final SecurityContextRepository securityRepository = new HttpSessionSecurityContextRepository();
-
     public static UserDetails getAuthenticatedUser() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (principal instanceof UserDetails user) {
