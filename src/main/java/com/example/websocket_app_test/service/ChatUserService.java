@@ -7,7 +7,7 @@ import com.example.websocket_app_test.repository.ChatUserRepository;
 import com.example.websocket_app_test.request.ChangeUserDetailsRequest;
 import com.example.websocket_app_test.response.ChatResponse;
 import com.example.websocket_app_test.response.UserResponse;
-import com.example.websocket_app_test.utils.application.Converter;
+import com.example.websocket_app_test.utils.application.Mapper;
 import com.example.websocket_app_test.utils.exception.ApiException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +29,7 @@ public class ChatUserService {
     public List<ChatResponse> getChats() {
         ChatUser user = SecurityUtils.getAuthenticatedUser();
         List<Chat> chats = this.findUser(user.getUsername()).getChats();
-        return chats.stream().map(Converter::chatConvertToResponse).toList();
+        return chats.stream().map(Mapper::chatConvertToResponse).toList();
     }
 
     public void addChatToUser(ChatUser user, Chat chat) {
@@ -52,7 +52,7 @@ public class ChatUserService {
                 .filter((user) -> !Objects.equals(user.getUsername(), chatUser.getUsername()))
                 .toList();
         return chatUsers.stream()
-                .map(Converter::userConvertToResponse)
+                .map(Mapper::userConvertToResponse)
                 .toList();
     }
 
@@ -75,13 +75,13 @@ public class ChatUserService {
         user.setUsername(request.getNewUsername());
         user.setName(request.getNewName());
         user = chatUserRepository.save(user);
-        return Converter.userConvertToResponse(user);
+        return Mapper.userConvertToResponse(user);
     }
     public UserResponse updateUserDetails(MultipartFile file) throws IOException {
         ChatUser user = SecurityUtils.getAuthenticatedUser();
         user.setImg(file.getBytes());
         user = chatUserRepository.save(user);
-        return Converter.userConvertToResponse(user);
+        return Mapper.userConvertToResponse(user);
     }
 
     public ChatUser findUser(String username) {

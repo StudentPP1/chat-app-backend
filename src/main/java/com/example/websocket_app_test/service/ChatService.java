@@ -9,7 +9,7 @@ import com.example.websocket_app_test.request.*;
 import com.example.websocket_app_test.response.ChatResponse;
 import com.example.websocket_app_test.response.MessageResponse;
 import com.example.websocket_app_test.response.UserResponse;
-import com.example.websocket_app_test.utils.application.Converter;
+import com.example.websocket_app_test.utils.application.Mapper;
 import com.example.websocket_app_test.utils.exception.ApiException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,14 +51,14 @@ public class ChatService {
             chatUserService.addChatToUser(user, chat);
         }
 
-        return Converter.chatConvertToResponse(chat);
+        return Mapper.chatConvertToResponse(chat);
     }
 
     @Transactional
     public void deleteChat(String fromId, Long chatId) {
         Chat chat = this.getChat(chatId);
         List<UserResponse> users = chat.getUsers().stream()
-                .map(Converter::userConvertToResponse)
+                .map(Mapper::userConvertToResponse)
                 .toList();
 
         if (chat.getType().equals(ChatType.PERSONAL)) {
@@ -89,13 +89,13 @@ public class ChatService {
         }
 
         this.sendMessageToUsers(
-                chat.getUsers().stream().map(Converter::userConvertToResponse).toList(),
+                chat.getUsers().stream().map(Mapper::userConvertToResponse).toList(),
                 MessageResponse.builder().type(String.valueOf(MessageType.SYSTEM)).build()
         );
     }
 
     public ChatResponse getChatResponse(Long chatId) {
-        return Converter.chatConvertToResponse(this.getChat(chatId));
+        return Mapper.chatConvertToResponse(this.getChat(chatId));
     }
 
     public void changeChatDetails(ChangeChatDetailsRequest request) {
@@ -103,7 +103,7 @@ public class ChatService {
         chat.setChatName(request.getChatName());
         chat = chatRepository.save(chat);
         this.sendMessageToUsers(
-                chat.getUsers().stream().map(Converter::userConvertToResponse).toList(),
+                chat.getUsers().stream().map(Mapper::userConvertToResponse).toList(),
                 MessageResponse.builder().type(String.valueOf(MessageType.SYSTEM)).build()
         );
     }
@@ -113,7 +113,7 @@ public class ChatService {
         chat.setImg(file.getBytes());
         chat = chatRepository.save(chat);
         this.sendMessageToUsers(
-                chat.getUsers().stream().map(Converter::userConvertToResponse).toList(),
+                chat.getUsers().stream().map(Mapper::userConvertToResponse).toList(),
                 MessageResponse.builder().type(String.valueOf(MessageType.SYSTEM)).build()
         );
     }

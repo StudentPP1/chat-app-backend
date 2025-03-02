@@ -13,13 +13,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
-public class Converter {
+public class Mapper {
     public static ChatResponse chatConvertToResponse(Chat chat) {
         List<Message> messages = chat.getMessages();
         ChatResponse chatResponse = ChatResponse.builder()
                 .chatName(chat.getChatName())
                 .chatId(chat.getId())
-                .users(chat.getUsers().stream().map(Converter::userConvertToResponse).toList())
+                .users(chat.getUsers().stream().map(Mapper::userConvertToResponse).toList())
                 .owner(chat.getOwner())
                 .img(chat.getImg())
                 .type(chat.getType())
@@ -28,7 +28,7 @@ public class Converter {
             chatResponse.setMessages(new ArrayList<>());
         }
         else {
-            chatResponse.setMessages(messages.stream().map(Converter::messageConvertToResponse).toList());
+            chatResponse.setMessages(messages.stream().map(Mapper::messageConvertToResponse).toList());
         }
         return chatResponse;
     }
