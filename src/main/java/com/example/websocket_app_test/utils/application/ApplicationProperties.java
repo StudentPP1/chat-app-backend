@@ -10,6 +10,7 @@ import java.util.List;
 @Data
 @ConfigurationProperties(prefix = "application")
 public class ApplicationProperties {
+    private String csrfAttribute;
     private List<String> allowedOrigins;
     private String frontEndUrl;
     private String loginSuccessUrl;
