@@ -3,7 +3,7 @@ spring:
   datasource:
     password: ${env.DATABASE_PASSWORD}
     username: ${env.DATABASE_USERNAME}
-    url: jdbc:postgresql://localhost:5432/postgres
+    url: ${env.DATABASE_URL}
     driver-class-name: org.postgresql.Driver
   jpa:
     show-sql: true
